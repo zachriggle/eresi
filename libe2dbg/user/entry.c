@@ -6,7 +6,7 @@
 * @file libe2dbg/user/entry.c
  * @brief The debugger file for OS dependant entry points
  * @ingroup user
- * 
+ *
  * Started on  Tue Jul 11 20:37:33 2003 jfv
  * $Id$
  */
@@ -16,7 +16,7 @@
 
 
 /**
- * Our fake main function 
+ * Our fake main function
  * @param argc
  * @param argv
  * @param aux
@@ -69,7 +69,7 @@ int			e2dbg_fake_main(int argc, char **argv, char **aux)
   /* Initialize a "fake" thread if we are debugging a monothread program */
   if (e2dbgworld.curthread == NULL)
     e2dbg_curthread_init();
-  
+
   /* Make sure libstderesi handlers are filled */
   eresi_stdconstructor();
 
@@ -85,10 +85,10 @@ int			e2dbg_fake_main(int argc, char **argv, char **aux)
   SETSIG;
 
 #if __DEBUG_E2DBG__
-  len = snprintf(logbuf, BUFSIZ, 
-		 "[e2dbg_fake_main] Calling main %08X curthr %08X id %u\n", 
-		 (eresi_Addr) e2dbgworld.real_main, 
-		 (eresi_Addr) e2dbgworld.curthread, 
+  len = snprintf(logbuf, BUFSIZ,
+		 "[e2dbg_fake_main] Calling main %08X curthr %08X id %u\n",
+		 (eresi_Addr) e2dbgworld.real_main,
+		 (eresi_Addr) e2dbgworld.curthread,
 		 (unsigned int) getpid());
   write(1, logbuf, len);
 #endif
@@ -96,9 +96,9 @@ int			e2dbg_fake_main(int argc, char **argv, char **aux)
   /* Call the original main */
   e2dbg_presence_reset();
   ret = (*e2dbgworld.real_main)(argc, argv, aux);
-  
+
 #if __DEBUG_E2DBG__
-  len = snprintf(logbuf, BUFSIZ, 
+  len = snprintf(logbuf, BUFSIZ,
 		 "[e2dbg_fake_main] Main returned %u\n", ret);
   write(1, logbuf, len);
 #endif
@@ -117,7 +117,7 @@ int			e2dbg_fake_main(int argc, char **argv, char **aux)
 
 
 /**
- * Entry point for Linux 
+ * Entry point for Linux
  * @param main
  * @param argc
  * @param ubp_av
@@ -130,11 +130,11 @@ int			e2dbg_fake_main(int argc, char **argv, char **aux)
 int	__libc_start_main(int (*main) (int, char **, char **aux),
 			  int argc, char **ubp_av,
 			  // FIXME on PPC
-			  //ElfW(auxv_t) *__unbounded auxvec, 
+			  //ElfW(auxv_t) *__unbounded auxvec,
 			  void (*init) (void),
 			  void (*fini) (void),
-			  void (*rtld_fini) (void), 
-			  void *__unbounded stack_end)
+			  void (*rtld_fini) (void),
+			  void * stack_end)
 {
   eresi_Addr		orig;
   int			(*libcstartmain)();
@@ -154,7 +154,7 @@ int	__libc_start_main(int (*main) (int, char **, char **aux),
     {
       write(1, "Error : Orig __libc_start_main not found\n", 41);
       return (-1);
-      PROFILER_ERR(__FILE__, __FUNCTION__, __LINE__, 
+      PROFILER_ERR(__FILE__, __FUNCTION__, __LINE__,
 			"Orig __libc_start_main not found", (-1));
     }
 
@@ -177,7 +177,7 @@ int	__libc_start_main(int (*main) (int, char **, char **aux),
 #endif
 
   e2dbgworld.real_main = main;
-  ret = libcstartmain(e2dbg_fake_main, argc, ubp_av, init, 
+  ret = libcstartmain(e2dbg_fake_main, argc, ubp_av, init,
 		      fini, rtld_fini, stack_end);
 
   /* Never reached */
@@ -188,7 +188,7 @@ int	__libc_start_main(int (*main) (int, char **, char **aux),
 
 
 /**
- * Find the number of arguments by inspecting the environment on the stack 
+ * Find the number of arguments by inspecting the environment on the stack
  * @param args
  * @return
  */
@@ -230,7 +230,7 @@ int				e2dbg_get_args(char **args)
 
 
 /**
- * Entry point on FreeBSD 
+ * Entry point on FreeBSD
  * @param fini
  * @return
  */
@@ -246,7 +246,7 @@ int				atexit(void (*fini)(void))
   PROFILER_IN(__FILE__, __FUNCTION__, __LINE__);
 
   e2dbg_presence_set();
-  
+
 #if __DEBUG_E2DBG__
   printf("[(e2dbg)atexit] there\n");
 #endif
@@ -257,11 +257,11 @@ int				atexit(void (*fini)(void))
     {
       write(1, "Error : Orig atexit not found\n", 30);
       return (-1);
-      PROFILER_ERR(__FILE__, __FUNCTION__, __LINE__, 
+      PROFILER_ERR(__FILE__, __FUNCTION__, __LINE__,
 			"Orig atexit not found", (-1));
     }
   libc_atexit = (void *) orig;
-  
+
 #if __DEBUG_E2DBG__
   printf("[(e2dbg)atexit 2 : envp = %08X \n", (eresi_Addr) environ);
 #endif
@@ -269,7 +269,7 @@ int				atexit(void (*fini)(void))
   /* Initialize a "fake" thread if we are debugging a monothread program */
   if (e2dbgworld.curthread == NULL)
     e2dbg_curthread_init();
-  
+
 #if __DEBUG_E2DBG__
   printf("[(e2dbg) atexit 3 \n");
 #endif
@@ -283,27 +283,27 @@ int				atexit(void (*fini)(void))
       argc = e2dbg_get_args(args);
       params.ac = argc;
       params.av = args;
-      
+
       /* Load the debugger in a new thread */
       e2dbgworld.preloaded = 1;
-      
+
       /* Initalize mutexes */
-      e2dbg_mutex_init(&e2dbgworld.dbgbp);      
-      e2dbg_entry(&params); 
+      e2dbg_mutex_init(&e2dbgworld.dbgbp);
+      e2dbg_entry(&params);
     }
-  
+
 #if __DEBUG_E2DBG__
   printf("[e2dbg-fbsd: atexit 3]\n");
 #endif
 
   /* Recall the original function */
   e2dbg_presence_reset();
-  PROFILER_ROUT(__FILE__, __FUNCTION__, __LINE__, 
+  PROFILER_ROUT(__FILE__, __FUNCTION__, __LINE__,
 		     libc_atexit(fini));
 }
 
 /**
- * Entry point for Solaris 
+ * Entry point for Solaris
  * @param argc
  * @param ubp_av
  * @return
@@ -315,41 +315,41 @@ int				atexit(void (*fini)(void))
   int			(*realfpstart)();
   char			*argv[3];
   e2dbgparams_t		params;
-  
+
   PROFILER_IN(__FILE__, __FUNCTION__, __LINE__);
-  
+
   #if __DEBUG_E2DBG__
   printf("[e2dbg__fpstart] Start\n");
   #endif
-  
+
   //Find the real symbol
   orig = (eresi_Addr) e2dbg_dlsym("__fpstart");
   if (!orig)
   {
   write(1, "Error : Orig __fpstart not found\n", 33);
   return;
-  }  
+  }
   realfpstart = (void *) orig;
-  
+
   #if __DEBUG_E2DBG__
   printf("[e2dbg__fpstart] 2\n");
   #endif
-  
+
   //Load the debugger
   argv[0] = E2DBG_ARGV0;
-  argv[1] = ubp_av[0]; 
+  argv[1] = ubp_av[0];
   argv[2] = NULL;
   params.ac = 2;
   params.av = argv;
   //CLRSIG;
   e2dbgworld.preloaded = 1;
-  e2dbg_entry(&params); 
+  e2dbg_entry(&params);
   //SETSIG;
-  
+
   #if __DEBUG_E2DBG__
   printf("[e2dbg__fpstart] End \n");
   #endif
-  
+
   PROFILER_OUT(__FILE__, __FUNCTION__, __LINE__);
   }
 */
